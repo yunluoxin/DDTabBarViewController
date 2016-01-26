@@ -8,6 +8,7 @@
 
 #import "DDTabBarController.h"
 #import "DDCustomButton.h"
+#import "ViewController.h"
 #undef DD_SCREEN_WIDTH
 #define DD_SCREEN_WIDTH ([UIScreen mainScreen].bounds.size.width) //宽
 
@@ -18,7 +19,9 @@ static void *ID = @"DDTabBarController";
 @interface DDTabBarController ()
 @property (nonatomic, strong)UIView *myTabBar ;
 
-@property (nonatomic, assign)NSInteger selectedIndex ;
+@property (nonatomic, weak)UIButton * selectedButton ;
+
+@property (nonatomic, strong)NSMutableArray *buttons ;
 @end
 
 @implementation DDTabBarController
@@ -30,25 +33,37 @@ static void *ID = @"DDTabBarController";
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    NSLog(@"%@",self.tabBar.subviews);
     for ( UIView *view in self.tabBar.subviews) {
         [view removeFromSuperview];
     }
-    NSLog(@"%@",self.tabBar.subviews);
     //移除之后才可以增加到bar上
     [self.tabBar addSubview:_myTabBar];
-
 }
 
 - (void)initView
 {
     _myTabBar = [[UIView alloc]initWithFrame:self.tabBar.bounds];
-    _myTabBar.backgroundColor = [UIColor orangeColor];
+    _myTabBar.backgroundColor = [UIColor grayColor];                      //tabbar的颜色
     
-    [self.tabBarItem addObserver:self forKeyPath:@"badgeValue" options:1 context:ID];
+    
+    ViewController *vc1 = [[ViewController alloc]init];
+    [self setupTabBarItemWithController:vc1 title:@"首页" imageName:@"tab_bar_cart"];
+    
+    UIViewController *vc2 = [[UIViewController alloc]init];
+    [self setupTabBarItemWithController:vc2 title:@"首页2" imageName:@"tab_bar_category"];
+    
+    
+//    //title未选中的颜色
+//    [[UITabBarItem appearance] setTitleTextAttributes:@{
+//                                                        NSForegroundColorAttributeName:[UIColor blackColor]
+//                                                        }forState:UIControlStateNormal];
+//    //title选中的颜色
+//    [[UITabBarItem appearance] setTitleTextAttributes:@{
+//                                                        NSForegroundColorAttributeName:[UIColor orangeColor]
+//                                                        }forState:UIControlStateSelected];
 }
 
--(void) addViewController:(UIViewController *)vc withTitle:(NSString *)title normalImageName:(NSString *) imageName selectedImageName:(NSString *)selectedImageName
+-(void) setupTabBarItemWithController:(UIViewController *)vc title:(NSString *)title imageName:(NSString *)imageName selectedImageName:(NSString *)selectedImageName
 {
     UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:vc];
     
@@ -57,23 +72,47 @@ static void *ID = @"DDTabBarController";
     [button setTitle:title forState:UIControlStateSelected];
     [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [button setTitleColor:[UIColor orangeColor] forState:UIControlStateSelected];
-    [button setBackgroundImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
-    [button setBackgroundImage:[UIImage imageNamed:selectedImageName] forState:UIControlStateNormal];
+    [button setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
+    [button setImage:[UIImage imageNamed:selectedImageName] forState:UIControlStateNormal];
     button.titleLabel.textAlignment = NSTextAlignmentCenter ;
     button.titleLabel.font = [UIFont systemFontOfSize:12];//设置字体
     button.tag = self.childViewControllers.count ;
-    [button addTarget:self action:@selector(selectedButton:) forControlEvents:UIControlEventTouchUpInside];
+    [button addTarget:self action:@selector(selectedBtn:) forControlEvents:UIControlEventTouchUpInside];
+    
+    nav.title = title ; //设置导航栏标题
+    
+    
     [self addChildViewController:nav];
     [self.myTabBar addSubview:button];
+    [self.buttons addObject:button];
     [self relayoutSubviews];
+    [nav.tabBarItem addObserver:self forKeyPath:@"badgeValue" options:1 context:ID];
 }
-
-- (void) selectedButton:(DDCustomButton *)button
+-(void) setupTabBarItemWithController:(UIViewController *)vc title:(NSString *)title imageName:(NSString *)imageName
 {
-    NSLog(@"button.tag--%ld",button.tag);
-    self.tabBarController.selectedViewController = self.childViewControllers[button.tag];
+    [self setupTabBarItemWithController:vc title:title imageName:imageName selectedImageName:[NSString stringWithFormat:@"%@_selected",imageName]];
 }
 
+/**
+ *  选中其他按钮，即切换控制器
+ *
+ */
+- (void) selectedBtn:(UIButton *)button
+{
+    _selectedButton.selected = NO ;
+    _selectedButton = button ;
+    button.selected = YES ;
+    self.selectedIndex = button.tag ;  //设置当前选中的控制器！！！！
+}
+
+
+- (NSMutableArray *)buttons
+{
+    if (!_buttons) {
+        _buttons = [NSMutableArray array];
+    }
+    return _buttons ;
+}
 /**
  *  每增加一个选项就要重新布置一次
  */
@@ -87,6 +126,19 @@ static void *ID = @"DDTabBarController";
         CGFloat x = margin + width * i ;
         UIView *view = self.myTabBar.subviews[i];
         view.frame = CGRectMake(x, 0, width, tabbar_height);
+    }
+}
+
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context
+{
+    if ([@"badgeValue" isEqualToString:keyPath]) {
+        NSString *value =  change[@"new"];
+        NSInteger i = [self.tabBar.items indexOfObject:object];
+        DDCustomButton *button = _buttons[i] ;
+        button.badgeValue = value ;
+    }else{
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }
 @end

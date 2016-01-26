@@ -55,7 +55,7 @@
     [super layoutSubviews];
     CGFloat w = _messageNumView.bounds.size.width ;
     CGFloat h = _messageNumView.bounds.size.height ;
-    CGFloat x = self.bounds.size.width - w - 20 ;
+    CGFloat x = self.bounds.size.width/2 + 3 ; //--------->>>>>>>>>----自定义位置---<<<<<<<<<<<<-----------
     CGFloat y = 3 ;
     _messageNumView.frame = CGRectMake(x,y,w,h);
 }

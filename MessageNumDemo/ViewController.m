@@ -16,7 +16,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.tabBarItem.badgeValue = @"12";
+    self.navigationController.tabBarItem.badgeValue = @"8";
     MessageNumView *mv = [[MessageNumView alloc]initWithFrame:CGRectMake(100, 100, 30, 15)];
     mv.badgeValue = @"new";
     [self.view addSubview:mv];

@@ -53,23 +53,24 @@
         return ;
     }
     self.hidden = NO ;
+    CGFloat width = MessageNumImage.size.width ;
+    CGFloat height = MessageNumImage.size.height ;
     if (badgeValue.length == 1) {
         //不拉伸
         [self setBackgroundImage:MessageNumImage forState:UIControlStateNormal];
         [self setTitle:badgeValue forState:UIControlStateNormal];
-        self.bounds = CGRectMake(0, 0, 10, 10);
+        self.bounds = CGRectMake(0, 0, width, height);
         return ;
     }
     if (![badgeValue isEqualToString:@"new"] && ![badgeValue isEqualToString:@"more"] && badgeValue.length > 2) {
         badgeValue = @"99+";
     }
     //    NSLog(@"%f---%f",MessageNumImage.size.width,MessageNumImage.size.height);
-    CGFloat width = MessageNumImage.size.width ;
-    CGFloat height = MessageNumImage.size.height ;
     CGSize size = [badgeValue sizeOfFont:self.titleLabel.font maxWidth:width * 3 maxHeight:height];
     self.bounds = CGRectMake(0, 0, size.width + width/2, height);
     [self setBackgroundImage:[MessageNumImage stretchableImageWithLeftCapWidth:width/2 topCapHeight:height/2] forState:UIControlStateNormal];
     [self setTitle:badgeValue forState:UIControlStateNormal];
     
 }
+
 @end
